@@ -4,9 +4,7 @@ import java.io.File
 import javax.imageio.ImageIO
 
 object Img {
-  def read(img: String) = read(new File(img))
-
-  def read(img: File) = Img(ImageIO.read(img))
+  def read(img: String) = Img(ImageIO.read(new File(img)))
 
   def int2Argb(i: Int) = (i >> 24 & 0xFF, i >> 16 & 0xFF, i >> 8 & 0xFF, i >> 0 & 0xFF)
 

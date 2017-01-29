@@ -1,9 +1,7 @@
 import java.io._
 
 object Io {
-  def writeTo(file: String)(p: PrintWriter => Unit) = writeTo(new File(file))(p)
-
-  def writeTo(file: File)(p: PrintWriter => Unit) = {
+  def writeTo(file: String)(p: PrintWriter => Unit) = {
     val pw = new PrintWriter(file, "UTF-8")
     try
       p(pw)
@@ -11,9 +9,7 @@ object Io {
       pw.close()
   }
 
-  def writeTo(file: String, data: Array[Byte]) = writeTo(new File(file), data)
-
-  def writeTo(file: File, data: Array[Byte]) = {
+  def writeTo(file: String, data: Array[Byte]) = {
     val s = new FileOutputStream(file)
     try
       s.write(data)

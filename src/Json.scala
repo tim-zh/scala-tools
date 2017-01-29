@@ -8,11 +8,16 @@ object Json {
       currentPos = 0
       val result = nextValue()
       if (currentPos != s.length)
-        throw exception(s.substring(currentPos), currentPos)
+        throw exception(s.substring(currentPos), currentPos, "end of input")
       result
     }
 
-    private def exception(token: String, at: Int) = new IllegalArgumentException(s"unexpected token $token at $at")
+    private def exception(token: String, at: Int, expected: String) = {
+      val subS = s.substring(0, at)
+      val row = "\\n".r.findAllMatchIn(subS).size + 1
+      val col = at - (if (subS.lastIndexOf('\n') == -1) 0 else subS.lastIndexOf('\n'))
+      new IllegalArgumentException(s"unexpected token $token at $at (row: $row, col: $col), expected: $expected")
+    }
 
     private val numberChars = Set('-', '+', '.', 'e', 'E', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
     private val validNumber = """^-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?$""".r
@@ -47,9 +52,9 @@ object Json {
             j += 1
           val result = s.substring(currentPos, j)
           if (validNumber.findFirstIn(result).isEmpty)
-            throw exception(result, currentPos)
+            throw exception(result, currentPos, "json number")
           result
-        case str => throw exception(str.toString, currentPos)
+        case char => char.toString
       }
       currentPos += token.length
       token
@@ -64,14 +69,14 @@ object Json {
       case str: String => (str.head match {
         case '"' => str.substring(1, str.length - 1)
         case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => java.lang.Double.parseDouble(str)
-        case t => throw exception(t.toString, currentPos)
+        case t => throw exception(t.toString, currentPos, "json value")
       }).asInstanceOf[Object]
     }
 
     private def nextField() = {
       val key = nextToken()
       if (key.head != '"')
-        throw exception(key, currentPos - key.length)
+        throw exception(key, currentPos - key.length, "\"")
       skip(":")
       val value = nextValue()
       (key.substring(1, key.length - 1), value)
@@ -80,7 +85,7 @@ object Json {
     private def skip(t: String) = {
       val result = nextToken()
       if (result != t)
-        throw exception(result, currentPos - result.length)
+        throw exception(result, currentPos - result.length, t)
     }
 
     private def fillArray() = {
@@ -106,7 +111,7 @@ object Json {
           doFill
           t = nextToken()
           if (t != "," && t != end)
-            throw exception(t, currentPos - t.length)
+            throw exception(t, currentPos - t.length, s", or $end")
         }
       }
     }
