@@ -1,7 +1,12 @@
 import java.io._
+import scala.collection.mutable.ArrayBuilder
 
 object Io {
-  def writeTo(file: String)(p: PrintWriter => Unit) = {
+  def readLines(file: String) = scala.io.Source.fromFile(file).getLines()
+
+  def readString(file: String) = scala.io.Source.fromFile(file).mkString
+
+  def write(file: String)(p: PrintWriter => Unit) = {
     val pw = new PrintWriter(file, "UTF-8")
     try
       p(pw)
@@ -9,7 +14,7 @@ object Io {
       pw.close()
   }
 
-  def writeTo(file: String, data: Array[Byte]) = {
+  def write(file: String, data: Array[Byte]) = {
     val s = new FileOutputStream(file)
     try
       s.write(data)
@@ -17,21 +22,21 @@ object Io {
       s.close()
   }
 
-  def foreachIn(root: String)(f: File => Unit): Unit = foreachIn(new File(root))(f)
+  def foreach(root: String)(f: File => Unit): Unit = foreach(new File(root))(f)
 
-  def foreachIn(root: File)(f: File => Unit): Unit = {
+  def foreach(root: File)(f: File => Unit): Unit = {
     f(root)
     if (root.isDirectory)
-      root.listFiles().foreach(foreachIn(_)(f))
+      root.listFiles().foreach(foreach(_)(f))
   }
 
-  @inline private def _list(root: File): Array[File] =
+  private def _list(root: File, builder: ArrayBuilder[File]): ArrayBuilder[File] = {
     if (root.isDirectory)
-      root.listFiles().flatMap(_list)
+      root.listFiles().foreach(_list(_, builder))
     else
-      Array(root)
+      builder += root
+    builder
+  }
 
-  def list(root: String) = _list(new File(root))
-
-  def list(root: File) = _list(root)
+  def list(root: String) = _list(new File(root), ArrayBuilder.make()).result()
 }

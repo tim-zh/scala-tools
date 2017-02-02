@@ -69,7 +69,7 @@ object Json {
       case str: String => (str.head match {
         case '"' => str.substring(1, str.length - 1)
         case '-' | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' => java.lang.Double.parseDouble(str)
-        case t => throw exception(t.toString, currentPos, "json value")
+        case t => throw exception(t.toString, currentPos - str.length, "json value")
       }).asInstanceOf[Object]
     }
 

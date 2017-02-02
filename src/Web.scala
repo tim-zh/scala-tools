@@ -1,4 +1,4 @@
-import java.io.{ BufferedReader, InputStreamReader, OutputStream }
+import java.io._
 import java.net.ServerSocket
 
 object Web {
@@ -11,6 +11,7 @@ object Web {
    (request.method, request.path) match {
      case ("GET", "/") => TextResponse("helloworld")
      case ("GET", "/img") => FileResponse("123.png", "image/png").and(_.withHeader("X-x", "O-o"))
+     case ("GET", s) => Response.guessType(s)
    }
   }, println).start()}}}
    */
@@ -55,17 +56,53 @@ object Web {
       Request(method, path, headers)
     }
 
-    private def writeResponse(request: Request, output: OutputStream) = {
-      val response = try
-        handler(request, this)
+    private def writeResponse(request: Request, output: OutputStream) =
+      try
+        handler(request, this).writeTo(output)
       catch {
-        case _: MatchError => TextResponse("Not found").and(_.withStatus("HTTP/1.1 404 Not found"))
+        case _: MatchError => Response.notFound.writeTo(output)
+        case e: Throwable =>
+          val sw = new StringWriter
+          val pw = new PrintWriter(sw)
+          e.printStackTrace(pw)
+          log(sw.toString)
+          Response.serverError.writeTo(output)
       }
-      response.writeTo(output)
-    }
   }
 
   case class Request private (method: String, path: String, headers: Map[String, String])
+
+  object Response {
+    private val map = Map(
+      "css" -> "text/css",
+      "flv" -> "video/x-flv",
+      "gif" -> "image/gif",
+      "h264" -> "video/h264",
+      "htm" -> "text/html",
+      "html" -> "text/html",
+      "js" -> "application/javascript",
+      "json" -> "application/json",
+      "jpeg" -> "image/jpeg",
+      "jpg" -> "image/jpeg",
+      "pdf" -> "application/pdf",
+      "png" -> "image/png",
+      "svg" -> "image/svg+xml",
+      "webm" -> "video/webm"
+    )
+
+    def guessType(filename: String) = {
+      val dot = filename.lastIndexOf('.')
+      val ext = if (dot != -1 && dot != filename.length - 1)
+        filename.substring(dot + 1)
+      else
+        ""
+      FileResponse(filename, map.getOrElse(ext, "text/plain"))
+    }
+
+    val notFound = TextResponse("Not found").and(_.withStatus("HTTP/1.1 404 Not found"))
+
+    val serverError = TextResponse("Internal Server Error").and(_.withStatus("HTTP/1.1 500 Internal Server Error"))
+  }
 
   trait Response {
     def info: ResponseInfo

@@ -25,7 +25,7 @@ case class Img(img: BufferedImage) {
   override def clone(): Img =
     Img(new BufferedImage(img.getColorModel, img.copyData(null), img.getColorModel.isAlphaPremultiplied, null))
 
-  def write(filename: String, formatName: String = "png"): Unit = ImageIO.write(img, formatName, new File(filename))
+  def write(file: String, format: String = "png"): Unit = ImageIO.write(img, format, new File(file))
 
   /**
    * @param f (x, y, argb) => newArgb
@@ -49,6 +49,9 @@ case class Img(img: BufferedImage) {
 
   def grayscale = Img(Img.colorConvert.filter(img, null))
 
+  /**
+   * @return ordered Seq[(color, occurrences)]
+   */
   def histogram = {
     val map = scala.collection.mutable.Map[Int, Int]().withDefaultValue(0)
     for {
