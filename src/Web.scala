@@ -2,7 +2,7 @@ import java.io._
 import java.net.ServerSocket
 
 object Web {
-  def openBrowser(port: Int, path: String = "/") =
+  def openBrowser(port: Int, path: String = "/"): Unit =
     java.awt.Desktop.getDesktop.browse(new java.net.URI(s"http://localhost:$port$path"))
 
   /**
@@ -20,7 +20,7 @@ object Web {
     private var stopped = false
     private val serverSocket = new ServerSocket(port)
 
-    def start() = if (!started) {
+    def start(): Unit = if (!started) {
       started = true
       log("started")
       try
@@ -39,7 +39,7 @@ object Web {
       log("stopped")
     }
 
-    def stop() = stopped = true
+    def stop(): Unit = stopped = true
 
     private def readRequestFrom(input: BufferedReader) = {
       val Array(method, path, _*) = input.readLine().split(" ")
@@ -90,7 +90,7 @@ object Web {
       "webm" -> "video/webm"
     )
 
-    def guessType(filename: String) = {
+    def guessType(filename: String): Response = {
       val dot = filename.lastIndexOf('.')
       val ext = if (dot != -1 && dot != filename.length - 1)
         filename.substring(dot + 1)
@@ -99,9 +99,9 @@ object Web {
       FileResponse(filename, map.getOrElse(ext, "text/plain"))
     }
 
-    val notFound = TextResponse("Not found").and(_.withStatus("HTTP/1.1 404 Not found"))
+    val notFound: Response = TextResponse("Not found").and(_.withStatus("HTTP/1.1 404 Not found"))
 
-    val serverError = TextResponse("Internal Server Error").and(_.withStatus("HTTP/1.1 500 Internal Server Error"))
+    val serverError: Response = TextResponse("Internal Server Error").and(_.withStatus("HTTP/1.1 500 Internal Server Error"))
   }
 
   trait Response {
@@ -136,12 +136,12 @@ object Web {
 
   case class ResponseInfo(status: String = "HTTP/1.1 200 OK",
                           headers: Map[String, String] = Map("Content-Type" -> "text/html", "Connection" -> "close")) {
-    def withStatus(value: String) = copy(status = value)
+    def withStatus(value: String): ResponseInfo = copy(status = value)
 
-    def withHeader(header: String, value: String) = copy(headers = headers.updated(header, value))
+    def withHeader(header: String, value: String): ResponseInfo = copy(headers = headers.updated(header, value))
 
-    def withContentType(value: String) = withHeader("Content-Type", value)
+    def withContentType(value: String): ResponseInfo = withHeader("Content-Type", value)
 
-    def serialized = status + "\r\n" + headers.map { case (key, value) => s"$key: $value" }.mkString("\r\n")
+    def serialized: String = status + "\r\n" + headers.map { case (key, value) => s"$key: $value" }.mkString("\r\n")
   }
 }

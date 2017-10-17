@@ -3,7 +3,7 @@ object Json {
     private var s: String = ""
     private var currentPos: Int = 0
 
-    def parse(str: String) = {
+    def parse(str: String): Object = {
       s = str
       currentPos = 0
       val result = nextValue()
@@ -145,7 +145,7 @@ object Json {
   }
 
   object Wrapper {
-    def apply(parsed: Any) = new WrapperSome(parsed)
+    def apply(parsed: Any): Wrapper = new WrapperSome(parsed)
   }
 
   object WrapperNone extends Wrapper {

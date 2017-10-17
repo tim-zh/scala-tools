@@ -2,11 +2,11 @@ import java.io._
 import scala.collection.mutable.ArrayBuilder
 
 object Io {
-  def readLines(file: String) = scala.io.Source.fromFile(file).getLines()
+  def readLines(file: String): Iterator[String] = scala.io.Source.fromFile(file).getLines()
 
-  def readString(file: String) = scala.io.Source.fromFile(file).mkString
+  def readString(file: String): String = scala.io.Source.fromFile(file).mkString
 
-  def write(file: String)(p: PrintWriter => Unit) = {
+  def write(file: String)(p: PrintWriter => Unit): Unit = {
     val pw = new PrintWriter(file, "UTF-8")
     try
       p(pw)
@@ -14,7 +14,7 @@ object Io {
       pw.close()
   }
 
-  def write(file: String, data: Array[Byte]) = {
+  def write(file: String, data: Array[Byte]): Unit = {
     val s = new FileOutputStream(file)
     try
       s.write(data)
@@ -38,5 +38,5 @@ object Io {
     builder
   }
 
-  def list(root: String) = _list(new File(root), ArrayBuilder.make()).result()
+  def list(root: String): Array[File] = _list(new File(root), ArrayBuilder.make()).result()
 }
