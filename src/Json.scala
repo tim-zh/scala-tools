@@ -138,6 +138,10 @@ object Json {
     def asArray: Option[IndexedSeq[Any]]
 
     def asMap: Option[Map[String, Any]]
+
+    def asWrappedArray: Option[IndexedSeq[Wrapper]]
+
+    def asWrappedMap: Option[Map[String, Wrapper]]
   }
 
   object Wrapper {
@@ -164,6 +168,10 @@ object Json {
     override def asArray = None
 
     override def asMap = None
+
+    override def asWrappedArray = None
+
+    override def asWrappedMap = None
   }
 
   class WrapperSome(val parsed: Any) extends Wrapper {
@@ -204,5 +212,9 @@ object Json {
       case x: java.util.Map[String, Object] => Some(Map(x.asScala.toSeq: _*))
       case _ => None
     }
+
+    override def asWrappedArray = asArray.map(_.map(Wrapper.apply))
+
+    override def asWrappedMap = asMap.map(_.mapValues(Wrapper.apply))
   }
 }
